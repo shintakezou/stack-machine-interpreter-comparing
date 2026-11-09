@@ -1,0 +1,10 @@
+[package]
+name = "stackmachine"
+version = "0.1.0"
+edition = "2021"
+
+# profilo release: l'analogo di gcc -O3 con LTO; la manopola tipo
+# -march=native è RUSTFLAGS="-C target-cpu=native" (vedi benchmark_rust.sh)
+[profile.release]
+lto = true
+codegen-units = 1
