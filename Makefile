@@ -94,6 +94,31 @@ $(BUILD)/native_transpiled_run400k_O2: native_transpiled_run400k.c $(TRANSPILED_
 $(BUILD)/native_transpiled_run400k_Ofast: native_transpiled_run400k.c $(TRANSPILED_SRC) vm.h | $(BUILD)
 	$(CC) -I. -Ofast $< -o $@ $(LDLIBS)
 
+# --- porting Go (vedi go/README.md) ------------------------------------------
+
+GO ?= go
+GO_BIN = $(BUILD)/go
+
+.PHONY: go-all go-build go-gen go-transpile benchmark-go
+
+go-all: go-transpile
+
+# compila tutti i binari Go in build/go/
+go-build:
+	cd go && $(GO) build -o ../$(GO_BIN)/ ./cmd/...
+
+# rigenera i file di dati srotolati (equivalente di test.php)
+go-gen:
+	cd go && $(GO) run ./gen
+
+# rigenera il transpilato Go da $(PROGRAM) e ricompila il runner
+go-transpile: go-build
+	$(GO_BIN)/transpiler $(PROGRAM)
+	cd go && $(GO) build -o ../$(GO_BIN)/ ./cmd/native_transpiled_run400k
+
+benchmark-go:
+	./benchmark_go.sh
+
 # --- misc ---------------------------------------------------------------------
 
 benchmark:
