@@ -1,25 +1,19 @@
 #!/bin/sh
 #
+# naive benchmark across optimization levels.
+# binaries are built via make into build/ (see Makefile).
+
 Optimization='-O0'
 compile() {
 	echo "--- compile Optimization: $Optimization ---"
-	gcc i_TTC_dispatch_computed_goto.c   -lm $Optimization -o i_TTC_dispatch_computed_goto 
-	gcc i_TTC_dispatch_switch.c          -lm $Optimization -o i_TTC_dispatch_switch 
-	gcc i_TTC_dispatch_if.c              -lm $Optimization -o i_TTC_dispatch_if 
-	gcc i_TTC_dispatch_function_table.c  -lm $Optimization -o i_TTC_dispatch_function_table 
-	gcc i_DCT_dispatch_function_call.c   -lm $Optimization -o i_DCT_dispatch_function_call
-
-	gcc -std=c99 $Optimization -fPIC -fvisibility=hidden  -shared vm_shared.c -o vm_shared.so -lm
-	gcc i_TTC_dispatch_function_table_shared.c -lm $Optimization -o i_TTC_dispatch_function_table_shared
-
-	gcc native_function_call.c           -lm $Optimization -o native_function_call
-	gcc native_function_init.c           -lm $Optimization -o native_function_init
-	gcc native_baseline.c                -lm $Optimization -o native_baseline
+	make -B OPT="$Optimization" >/dev/null
 }
 
 run(){
 	name=$1
-	time -f "%e $1" "./$name"
+	# run from inside build/: i_TTC_dispatch_function_table_shared
+	# dlopen()s "./vm_shared.so" relative to the current directory
+	(cd build && time -f "%e $name" "./$name")
 }
 
 benchmark(){
@@ -41,8 +35,8 @@ echo "remember to set the cpu performance governor, and remove other cpu usage"
 echo 'echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor'
 #read -p "Press key to continue.. " -n1 -s
 
-#compile the transpiler, and the reference test program
-./transpiler_recompile.sh
+# make also builds the transpiler and the transpiled reference programs
+# (native_transpiled_run400k_O2 / _Ofast, at their own fixed levels)
 
 Optimization='-O0'
 compile
@@ -55,7 +49,7 @@ benchmark
 Optimization='-O2'
 compile
 benchmark
-run ./native_transpiled_run400k_O2
+run native_transpiled_run400k_O2
 
 Optimization='-O2 -fshort-enums'
 compile
@@ -72,4 +66,4 @@ benchmark
 Optimization='-Ofast -march=native -fshort-enums'
 compile
 benchmark
-run ./native_transpiled_run400k_Ofast
+run native_transpiled_run400k_Ofast

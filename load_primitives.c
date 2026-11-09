@@ -1,3 +1,7 @@
+static int cmp_words(const void *a, const void *b){
+    return strcmp(*(const char * const *)a, *(const char * const *)b);
+}
+
 void load_primitives(void){
     DIR *dir = opendir("words");
     struct dirent *entry;
@@ -52,6 +56,11 @@ void load_primitives(void){
         }
     }
     closedir(dir);
+
+    // readdir() returns entries in filesystem order, which varies between
+    // machines: sort so the generated files are always identical
+    qsort(tmp, i, sizeof(tmp[0]), cmp_words);
+
     words = tmp;
     nwords = i;
 }
