@@ -94,6 +94,30 @@ $(BUILD)/native_transpiled_run400k_O2: native_transpiled_run400k.c $(TRANSPILED_
 $(BUILD)/native_transpiled_run400k_Ofast: native_transpiled_run400k.c $(TRANSPILED_SRC) vm.h | $(BUILD)
 	$(CC) -I. -Ofast $< -o $@ $(LDLIBS)
 
+# --- porting Rust (vedi rust/README.md) ---------------------------------------
+
+CARGO ?= cargo
+
+.PHONY: rust-all rust-build rust-gen rust-transpile benchmark-rust
+
+rust-all: rust-gen rust-transpile
+
+# compila tutti i binari Rust in rust/target/release/
+rust-build:
+	cd rust && $(CARGO) build --release
+
+# rigenera i moduli di dati srotolati (equivalente di test.php)
+rust-gen:
+	cd rust && $(CARGO) run --release --bin gen
+
+# rigenera il transpilato Rust da $(PROGRAM) e ricompila tutto
+rust-transpile:
+	cd rust && $(CARGO) run --release --bin transpiler -- ../$(PROGRAM)
+	cd rust && $(CARGO) build --release
+
+benchmark-rust:
+	./benchmark_rust.sh
+
 # --- misc ---------------------------------------------------------------------
 
 benchmark:

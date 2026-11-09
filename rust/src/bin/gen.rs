@@ -100,10 +100,12 @@ fn main() {
     b.push_str("pub fn load_and_call(v: &mut VM) {\n");
     stack_init(&mut b);
     for i in 0..N {
-        writeln!(b, "    /*{i:4}*/ F_OP_SUB(v);").unwrap();
+        // indice come commento in coda: rustfmt lo lascia sulla
+        // stessa riga, così il file generato è fmt-stabile
+        writeln!(b, "    F_OP_SUB(v); // {i}").unwrap();
     }
-    writeln!(b, "    /*{:4}*/ F_OP_MUL(v);", N).unwrap();
-    writeln!(b, "    /*{:4}*/ F_OP_RETURN(v);", N + 1).unwrap();
+    writeln!(b, "    F_OP_MUL(v); // {}", N).unwrap();
+    writeln!(b, "    F_OP_RETURN(v); // {}", N + 1).unwrap();
     b.push_str("}\n");
     fs::write("src/native_call_data.rs", &b).unwrap();
     println!("scritto src/native_call_data.rs");
